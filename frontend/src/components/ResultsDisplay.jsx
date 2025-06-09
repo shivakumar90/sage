@@ -1,111 +1,123 @@
 import React from 'react';
+import { symptomsDictionary } from '../data/symptomsDictionary.js';
 
 const ResultsDisplay = ({ results }) => {
-  if (!results) return null;
+  if (!results || !results.success) {
+    return (
+      <div className="max-w-4xl mx-auto p-4">
+        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert">
+          <p>No results found. Please try selecting different symptoms.</p>
+        </div>
+      </div>
+    );
+  }
 
-  const { data, possibleDiseases, urgentAttentionRequired, generalRecommendations } = results;
+  const { results: diseaseResults, submittedSymptoms } = results;
 
-  // Sort diseases by confidence score
-  const sortedDiseases = [...possibleDiseases].sort((a, b) => b.confidenceScore - a.confidenceScore);
+  if (!diseaseResults || diseaseResults.length === 0) {
+    return (
+      <div className="max-w-4xl mx-auto p-4">
+        <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4" role="alert">
+          <p>No matching diseases found for the selected symptoms.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Get symptom names from IDs
+  const selectedSymptomNames = submittedSymptoms.map(id => ({
+    id,
+    name: symptomsDictionary[id] || `Unknown Symptom (ID: ${id})`
+  }));
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 max-w-4xl mx-auto">
-      {urgentAttentionRequired && (
-        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert">
-          <p className="font-bold">Urgent Attention Required</p>
-          <p>Based on your symptoms, you may need immediate medical attention. Please seek medical care as soon as possible.</p>
-        </div>
-      )}
-
-      <h2 className="text-2xl font-bold mb-4">Analysis Results</h2>
-
-      {generalRecommendations && generalRecommendations.length > 0 && (
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-2">General Recommendations</h3>
-          <ul className="list-disc pl-5 space-y-1">
-            {generalRecommendations.map((recommendation, index) => (
-              <li key={index} className="text-gray-700">{recommendation}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
+    <div className="max-w-4xl mx-auto p-4">
       <div className="space-y-6">
-        {sortedDiseases.map((disease) => (
-          <div key={disease._id} className="border rounded-lg p-4">
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="text-xl font-semibold">{disease.name}</h3>
-              <span className={`px-3 py-1 rounded-full text-sm ${
-                disease.severity === 'high' ? 'bg-red-100 text-red-800' :
-                disease.severity === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                'bg-green-100 text-green-800'
-              }`}>
-                {disease.severity.charAt(0).toUpperCase() + disease.severity.slice(1)} Severity
+        {/* Submitted Symptoms Section */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-2xl font-bold mb-4">Selected Symptoms</h2>
+          <div className="flex flex-wrap gap-2">
+            {selectedSymptomNames.map(({ id, name }) => (
+              <span
+                key={id}
+                className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1.5 rounded-full flex items-center"
+              >
+                <span className="mr-1">•</span>
+                {name}
               </span>
-            </div>
+            ))}
+          </div>
+        </div>
 
-            <p className="text-gray-600 mb-4">{disease.description}</p>
-
-            <div className="mb-4">
-              <h4 className="font-semibold mb-2">Matching Symptoms:</h4>
-              <div className="flex flex-wrap gap-2">
-                {disease.matchingSymptoms.map((symptom) => (
-                  <span
-                    key={symptom._id}
-                    className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
-                  >
-                    {symptom.name}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="mb-4">
-              <h4 className="font-semibold mb-2">Recommendations:</h4>
-              <ul className="list-disc pl-5 space-y-1">
-                {Array.isArray(disease.recommendations) ? (
-                  disease.recommendations.map((recommendation, index) => (
-                    <li key={index} className="text-gray-700">{recommendation}</li>
-                  ))
-                ) : (
-                  <li className="text-gray-700">{disease.recommendations}</li>
+        {/* Top Results Section */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-2xl font-bold mb-4">Top Results</h2>
+          <div className="space-y-4">
+            {diseaseResults.slice(0, 5).map((result, index) => (
+              <div key={index} className="border-b pb-4 last:border-b-0">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-lg font-semibold capitalize">{result.disease}</h3>
+                    <p className="text-gray-600">Confidence: {(result.confidence * 100).toFixed(1)}%</p>
+                  </div>
+                  {result.requiresUrgentAttention && (
+                    <span className="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded">
+                      Urgent Attention Required
+                    </span>
+                  )}
+                </div>
+                {result.matchingSymptoms && result.matchingSymptoms.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-600">Matching Symptoms:</p>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {result.matchingSymptoms.map((symptom, idx) => (
+                        <span
+                          key={idx}
+                          className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded"
+                        >
+                          {symptom}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Recommendations Section */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-2xl font-bold mb-4">Recommendations</h2>
+          <div className="space-y-4">
+            {diseaseResults[0].requiresUrgentAttention && (
+              <div className="bg-red-50 border-l-4 border-red-500 p-4">
+                <p className="text-red-700 font-semibold">
+                  ⚠️ This condition may require immediate medical attention. Please consult a healthcare professional as soon as possible.
+                </p>
+              </div>
+            )}
+            <div className="prose max-w-none">
+              <p className="text-gray-700">
+                Based on your symptoms, we recommend:
+              </p>
+              <ul className="list-disc pl-5 mt-2 space-y-2">
+                <li>Consult with a healthcare professional for proper diagnosis</li>
+                <li>Keep track of any changes in your symptoms</li>
+                <li>Follow any prescribed treatment plans</li>
+                <li>Maintain a record of your medical history</li>
               </ul>
             </div>
-
-            <div>
-              <h4 className="font-semibold mb-2">Recommended Specialists:</h4>
-              <div className="flex flex-wrap gap-2">
-                {Array.isArray(disease.specialists) ? (
-                  disease.specialists.map((specialist, index) => (
-                    <span
-                      key={index}
-                      className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm"
-                    >
-                      {specialist}
-                    </span>
-                  ))
-                ) : (
-                  <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm">
-                    {disease.specialists}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <div className="mt-4 text-right">
-              <span className="text-sm text-gray-500">
-                Confidence Score: {disease.confidenceScore}%
-              </span>
-            </div>
           </div>
-        ))}
-      </div>
+        </div>
 
-      <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-        <p className="text-sm text-gray-600">
-          <strong>Disclaimer:</strong> This tool is for informational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.
-        </p>
+        {/* Disclaimer */}
+        <div className="text-sm text-gray-500 italic">
+          <p>
+            Note: This is an AI-powered analysis and should not replace professional medical advice.
+            Always consult with a healthcare provider for proper diagnosis and treatment.
+          </p>
+        </div>
       </div>
     </div>
   );

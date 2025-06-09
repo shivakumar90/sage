@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import SymptomForm from '../components/SymptomForm';
 import ResultsDisplay from '../components/ResultsDisplay';
-import { getDiseasesBySymptoms } from '../services/localApiService';
+import { getDiseasesBySymptoms } from '../services/api';
 
 const Home = () => {
   const [results, setResults] = useState(null);
@@ -12,7 +12,7 @@ const Home = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       console.log('Analyzing symptoms:', selectedSymptomIds);
       const response = await getDiseasesBySymptoms(selectedSymptomIds);
       console.log('Prediction response:', response);

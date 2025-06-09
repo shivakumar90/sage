@@ -1,15 +1,26 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { 
+  createBrowserRouter, 
+  RouterProvider,
+  createRoutesFromElements,
+  Route 
+} from 'react-router-dom';
 import Home from './pages/Home';
 
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route path="/" element={<Home />} />
+  ),
+  {
+    future: {
+      v7_startTransition: true,
+      v7_relativeSplatPath: true
+    }
+  }
+);
+
 function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-      </Routes>
-    </BrowserRouter>
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App; 
