@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const predictionRoutes = require('./routes/prediction');
+const healthRoutes = require('./routes/health');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -13,6 +14,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api', predictionRoutes);
+app.use('/api', healthRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
