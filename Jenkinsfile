@@ -44,25 +44,25 @@ pipeline {
             }
         }
 
-        stage('Prepare Compose') {
-            steps {
-                sh """
-                sed 's/__TAG__/${DOCKER_TAG}/g' docker-compose.template.yml > docker-compose.yml
-                """
-            }
-        }
+        // stage('Prepare Compose') {
+        //     steps {
+        //         sh """
+        //         sed 's/__TAG__/${DOCKER_TAG}/g' docker-compose.template.yml > docker-compose.yml
+        //         """
+        //     }
+        // }
         
         stage('Deploy to EC2') {
             steps {
                 sshagent(['aws-ssh']) {
-                    sh '''
-                        scp -o StrictHostKeyChecking=no docker-compose.yml ${EC2_USER}@${EC2_HOST}:/home/ubuntu/
+                    sh """
                         scp -o StrictHostKeyChecking=no deploy-ec2.sh ${EC2_USER}@${EC2_HOST}:/home/ubuntu/
-                        ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} "bash /home/ubuntu/deploy-ec2.sh"
-                    '''
+                        ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} "bash /home/ubuntu/deploy-ec2.sh ${DOCKER_TAG}"
+                    """
                 }
             }
         }
+
 
     }
     
