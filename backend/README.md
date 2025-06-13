@@ -1,77 +1,166 @@
-# Disease Prediction Backend
+# Disease Detection Backend
 
-A simple Express server that provides disease prediction based on symptoms using a Naive Bayes classifier.
+The backend service for the Disease Detection System, built with Node.js and Express.
 
 ## Features
 
 - RESTful API for disease prediction
-- Machine learning-based prediction using Naive Bayes
-- Local implementation (no external API dependencies)
-- JSON response format
+- Symptom-based disease analysis
+- Health check endpoint
+- CORS enabled
+- Docker support
 
-## Setup
+## Tech Stack
+
+- Node.js
+- Express.js
+- CORS
+- Docker
+
+## Development
+
+### Prerequisites
+
+- Node.js (v18 or higher)
+- npm or yarn
+
+### Setup
 
 1. Install dependencies:
-   ```
-   npm install
-   ```
+```bash
+npm install
+```
 
-2. Start the server:
-   ```
-   npm start
-   ```
+2. Start development server:
+```bash
+npm run dev
+```
 
-   For development with auto-restart on changes:
-   ```
-   npm run dev
-   ```
+3. Start production server:
+```bash
+npm start
+```
 
-## API Endpoints
+### Project Structure
 
-### Health Check
+```
+backend/
+├── routes/           # API routes
+│   ├── prediction.js # Prediction endpoints
+│   └── health.js     # Health check endpoint
+├── config/           # Configuration files
+│   └── diseases.js   # Disease data
+├── server.js         # Main application file
+└── package.json      # Project dependencies
+```
+
+### API Endpoints
+
+#### Health Check
 ```
 GET /api/health
 ```
-Returns the status of the server.
-
-### Predict Disease
-```
-POST /api/predict-disease
-```
-
-Request body:
-```json
-{
-  "symptoms": ["fever", "cough", "headache"]
-}
-```
-
 Response:
 ```json
 {
-  "predictions": [
+  "status": "ok",
+  "timestamp": "2024-03-14T12:34:56.789Z",
+  "service": "disease-detection-backend",
+  "environment": "production"
+}
+```
+
+#### Predict Disease
+```
+POST /api/predict
+```
+Request body:
+```json
+{
+  "symptoms": [1, 2, 3]  // Array of symptom IDs
+}
+```
+Response:
+```json
+{
+  "success": true,
+  "results": [
     {
       "disease": {
-        "id": "influenza",
-        "name": "Influenza",
-        "description": "A viral infection that attacks your respiratory system.",
-        "symptoms": ["fever", "headache", "cough", "muscle-pain", "fatigue"],
+        "id": "disease-id",
+        "name": "Disease Name",
+        "description": "Disease description",
+        "symptoms": ["symptom1", "symptom2"],
         "urgencyLevel": "medium",
         "recommendations": [
-          "Rest and stay hydrated",
-          "Take over-the-counter pain relievers to reduce fever",
-          "Wash hands frequently"
+          "Recommendation 1",
+          "Recommendation 2"
         ],
-        "specialists": ["General Practitioner", "Infectious Disease Specialist"]
+        "specialists": ["Specialist 1", "Specialist 2"]
       },
-      "probability": 0.6723,
-      "matching_symptoms": ["fever", "cough", "headache"]
+      "confidence": 0.85,
+      "matchingSymptoms": [1, 2, 3]
     }
-  ],
-  "urgent_attention_required": false,
-  "recommendations": [
-    "This is an ML-based assessment and not a medical diagnosis.",
-    "Always consult with healthcare professionals for proper evaluation."
   ]
 }
-``` 
+```
+
+### Environment Variables
+
+Create a `.env` file in the backend directory:
+
+```env
+NODE_ENV=production
+PORT=5000
+HOST=0.0.0.0
+```
+
+## Docker Support
+
+The backend can be built and run using Docker:
+
+```bash
+# Build the image
+docker build -t disease-detection-backend .
+
+# Run the container
+docker run -p 5000:5000 disease-detection-backend
+```
+
+## Error Handling
+
+The backend includes comprehensive error handling:
+
+- Input validation
+- Error middleware
+- Proper HTTP status codes
+- Detailed error messages in development
+- Sanitized error messages in production
+
+## Security
+
+- CORS enabled
+- Input sanitization
+- Error message sanitization in production
+- Rate limiting (optional)
+
+## Testing
+
+```bash
+# Run tests
+npm test
+
+# Run tests with coverage
+npm test -- --coverage
+```
+
+## Contributing
+
+1. Follow the coding style guide
+2. Write tests for new features
+3. Update documentation as needed
+4. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License. 

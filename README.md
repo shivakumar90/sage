@@ -1,158 +1,190 @@
 # Disease Detection System
 
-A comprehensive disease detection system that combines local symptom analysis with AI-powered diagnosis using the Infermedica API.
+A full-stack web application that uses machine learning to predict diseases based on symptoms. The system provides a user-friendly interface for users to input their symptoms and receive potential disease predictions along with relevant information.
 
 ## Features
 
-- Symptom selection and categorization
-- Disease prediction based on symptoms
-- Severity assessment
-- Medical recommendations
-- Specialist referrals
-- Urgent care alerts
-- AI-powered analysis using Infermedica API
+- Interactive symptom selection interface
+- Real-time disease prediction
+- Detailed disease information including:
+  - Description
+  - Urgency level
+  - Recommended actions
+  - Specialist recommendations
+- Responsive design for all devices
+- Docker support for easy deployment
+
+## Tech Stack
+
+### Frontend
+- React.js
+- Vite
+- Tailwind CSS
+- Radix UI Components
+- React Query for data fetching
+
+### Backend
+- Node.js
+- Express.js
+- CORS enabled
+- Docker support
+
+### Infrastructure
+- Docker & Docker Compose
+- Nginx for reverse proxy
+- AWS deployment ready
 
 ## Prerequisites
 
-- Node.js (v14 or higher)
-- MongoDB (v4.4 or higher)
-- npm or yarn
-- Infermedica API credentials (App ID and App Key)
+- Node.js (v18 or higher)
+- Docker and Docker Compose
+- npm or yarn package manager
 
-## Setup
+## Quick Start
+
+### Using Docker (Recommended)
 
 1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd disease-detection
-   ```
+```bash
+git clone <repository-url>
+cd disease-detection
+```
 
-2. Install backend dependencies:
-   ```bash
-   cd backend
-   npm install
-   ```
+2. Build and run using Docker Compose:
+```bash
+docker-compose up --build
+```
 
-3. Install frontend dependencies:
-   ```bash
-   cd ../frontend
-   npm install
-   ```
+3. Access the application:
+- Frontend: http://localhost
+- Backend API: http://localhost/api
 
-4. Create a `.env` file in the backend directory with the following variables:
-   ```
-   PORT=5000
-   MONGODB_URI=mongodb://localhost:27017/disease-detection
-   INFERMEDICA_APP_ID=your_app_id_here
-   INFERMEDICA_APP_KEY=your_app_key_here
-   INFERMEDICA_INTERVIEW_ID=default-interview
-   ```
+### Local Development
 
-5. Start MongoDB:
-   ```bash
-   mongod
-   ```
+1. Backend Setup:
+```bash
+cd backend
+npm install
+npm run dev
+```
 
-6. Seed the database:
-   ```bash
-   cd backend
-   npm run seed
-   ```
+2. Frontend Setup:
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-## Running the Application
+3. Access the application:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5000
 
-1. Start the backend server:
-   ```bash
-   cd backend
-   npm run dev
-   ```
+## Project Structure
 
-2. Start the frontend development server:
-   ```bash
-   cd frontend
-   npm start
-   ```
+```
+disease-detection/
+├── frontend/               # React frontend application
+│   ├── src/
+│   │   ├── components/    # React components
+│   │   ├── services/      # API services
+│   │   ├── pages/         # Page components
+│   │   └── data/          # Static data
+│   ├── public/            # Static assets
+│   └── Dockerfile         # Frontend Docker configuration
+│
+├── backend/               # Node.js backend application
+│   ├── routes/           # API routes
+│   ├── config/           # Configuration files
+│   └── Dockerfile        # Backend Docker configuration
+│
+├── docker-compose.yml    # Docker Compose configuration
+└── README.md            # Project documentation
+```
 
-3. Access the application at `http://localhost:3000`
-
-## Database Structure
-
-### Symptoms
-- name (String, required, unique)
-- category (String, required)
-- description (String)
-- severity (String, enum: ['low', 'medium', 'high'])
-- createdAt (Date)
-- updatedAt (Date)
-
-### Diseases
-- name (String, required, unique)
-- description (String, required)
-- symptoms (Array of ObjectIds referencing Symptom model)
-- severity (String, enum: ['low', 'medium', 'high'])
-- recommendations (Array of Strings)
-- specialists (Array of Strings)
-- requiresUrgentCare (Boolean)
-- createdAt (Date)
-- updatedAt (Date)
-
-## API Endpoints
+## API Documentation
 
 ### Health Check
-- `GET /api/health` - Check API health
+```
+GET /api/health
+```
+Returns the status of the server.
 
-### Symptoms
-- `GET /api/symptoms` - Get all symptoms
-- `GET /api/symptoms/:id` - Get symptom by ID
+### Predict Disease
+```
+POST /api/predict
+```
+Request body:
+```json
+{
+  "symptoms": [1, 2, 3]  // Array of symptom IDs
+}
+```
 
-### Diseases
-- `GET /api/diseases` - Get all diseases
-- `GET /api/diseases/:id` - Get disease by ID
-
-### Prediction
-- `POST /api/predict` - Predict diseases based on symptoms
-  - Request body:
-    ```json
+Response:
+```json
+{
+  "success": true,
+  "results": [
     {
-      "symptomIds": ["symptom_id1", "symptom_id2"],
-      "sex": "male" | "female",
-      "age": 25
+      "disease": {
+        "id": "disease-id",
+        "name": "Disease Name",
+        "description": "Disease description",
+        "symptoms": ["symptom1", "symptom2"],
+        "urgencyLevel": "medium",
+        "recommendations": [
+          "Recommendation 1",
+          "Recommendation 2"
+        ],
+        "specialists": ["Specialist 1", "Specialist 2"]
+      },
+      "confidence": 0.85,
+      "matchingSymptoms": [1, 2, 3]
     }
-    ```
-  - Response:
-    ```json
-    {
-      "success": true,
-      "data": {
-        "possibleDiseases": [...],
-        "urgentAttentionRequired": boolean,
-        "generalRecommendations": [...],
-        "infermedicaResults": {
-          "conditions": [...],
-          "common_risk_factors": [...],
-          "triage_level": string
-        }
-      }
-    }
-    ```
+  ]
+}
+```
+
+## Deployment
+
+### AWS Deployment
+
+1. Set up an EC2 instance
+2. Install Docker and Docker Compose
+3. Clone the repository
+4. Build and run:
+```bash
+docker-compose up --build -d
+```
+
+### Environment Variables
+
+Create a `.env` file in the root directory:
+```env
+NODE_ENV=production
+PORT=5000
+HOST=0.0.0.0
+```
 
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+## Support
+
+For support, please open an issue in the GitHub repository or contact the maintainers.
+
 ## Disclaimer
 
 This tool is for informational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.
-
-
 
 DataSet
 

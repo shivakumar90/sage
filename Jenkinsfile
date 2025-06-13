@@ -43,14 +43,6 @@ pipeline {
                 sh "docker push ${DOCKER_IMAGE_BACKEND}:${DOCKER_TAG}"
             }
         }
-
-        // stage('Prepare Compose') {
-        //     steps {
-        //         sh """
-        //         sed 's/__TAG__/${DOCKER_TAG}/g' docker-compose.template.yml > docker-compose.yml
-        //         """
-        //     }
-        // }
         
         stage('Deploy to EC2') {
             steps {
