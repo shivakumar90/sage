@@ -1,15 +1,11 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
-const connectDB = require('./models/db');
 const predictionRoutes = require('./routes/prediction');
 
-// Connect to MongoDB
-connectDB();
-
 const app = express();
-const PORT = process.env.PORT || 5000;
+const port = process.env.PORT || 5000;
+const host = process.env.HOST || '0.0.0.0';
 
 // Middleware
 app.use(cors());
@@ -18,27 +14,24 @@ app.use(express.json());
 // Routes
 app.use('/api', predictionRoutes);
 
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../frontend/dist')));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
-  });
-}
-
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({
+  const statusCode = err.statusCode || 500;
+  const message = err.message || 'An unexpected error occurred';
+  res.status(statusCode).json({
     success: false,
-    message: 'An unexpected error occurred'
+    message,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
 });
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.listen(port, host, () => {
+  console.log(`Server is running on http://${host}:${port}`);
+}).on('error', (err) => {
+  console.error('Failed to start server:', err);
+  process.exit(1);
 });
 
 module.exports = app; 

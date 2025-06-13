@@ -4,7 +4,8 @@ import path from "path";
 
 export default defineConfig({
   server: {
-    port: 8080,
+    port: 3000,
+    host: true
   },
   plugins: [react()],
   resolve: {
@@ -12,4 +13,7 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  define: {
+    'process.env': process.env
+  }
 }); 
