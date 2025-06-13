@@ -1,23 +1,37 @@
 #!/bin/bash
 
 # Update system
-sudo yum update -y
+sudo apt-get update
+sudo apt-get upgrade -y
+
+# Install required packages
+sudo apt-get install -y \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    software-properties-common \
+    git
 
 # Install Docker
-sudo yum install -y docker
-sudo service docker start
-sudo usermod -a -G docker ec2-user
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+
+# Start and enable Docker
+sudo systemctl start docker
+sudo systemctl enable docker
+
+# Add ubuntu user to docker group (assuming ubuntu user instead of ec2-user)
+sudo usermod -aG docker ubuntu
 
 # Install Docker Compose
 sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 
-# Install Git
-sudo yum install -y git
-
 # Create application directory
-mkdir -p /home/ec2-user/disease-detection
-cd /home/ec2-user/disease-detection
+sudo mkdir -p /home/ubuntu/disease-detection
+cd /home/ubuntu/disease-detection
 
 # Create docker-compose.yml
 cat > docker-compose.yml << 'EOL'
@@ -31,6 +45,7 @@ services:
       - backend
     environment:
       - VITE_API_URL=http://localhost:5000
+    restart: unless-stopped
 
   backend:
     image: disease-detection-backend:latest
@@ -39,7 +54,35 @@ services:
     environment:
       - NODE_ENV=production
       - MONGODB_URI=mongodb://localhost:27017/disease-detection
+    restart: unless-stopped
 EOL
 
 # Set proper permissions
-sudo chown -R ec2-user:ec2-user /home/ec2-user/disease-detection 
+sudo chown -R ubuntu:ubuntu /home/ubuntu/disease-detection
+
+# Create a systemd service for the application
+sudo tee /etc/systemd/system/disease-detection.service << 'EOL'
+[Unit]
+Description=Disease Detection Application
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/home/ubuntu/disease-detection
+ExecStart=/usr/local/bin/docker-compose up -d
+ExecStop=/usr/local/bin/docker-compose down
+User=ubuntu
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+# Enable and start the service
+sudo systemctl enable disease-detection.service
+sudo systemctl start disease-detection.service
+
+# Print completion message
+echo "Deployment completed successfully!"
+echo "The application should be accessible at http://$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)" 
