@@ -1,13 +1,15 @@
 const express = require('express');
 const router = express.Router();
+const axios = require('axios');
 const DISEASE_MAP = require('../config/diseases');
+const { symptomsDictionary } = require('../config/symptomsDictionary');
 
 /**
  * @route   POST /api/predict
- * @desc    Predicts diseases based on selected symptom IDs
+ * @desc    Predicts diseases based on binary symptom array
  * @access  Public
  */
-router.post('/predict', (req, res) => {
+router.post('/predict', async (req, res) => {
   try {
     const { symptoms } = req.body;
     
@@ -15,54 +17,51 @@ router.post('/predict', (req, res) => {
     if (!symptoms || !Array.isArray(symptoms)) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Please provide an array of symptom IDs' 
+        message: 'Please provide a binary array of symptoms' 
       });
     }
 
-    // Validate symptom IDs
-    if (symptoms.length === 0) {
+    // Validate array length
+    if (symptoms.length !== 377) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide at least one symptom'
+        message: 'Symptoms array must be exactly 377 elements long'
       });
     }
 
-    if (symptoms.length > 20) {
+    // Validate that all elements are 0 or 1
+    if (!symptoms.every(value => value === 0 || value === 1)) {
       return res.status(400).json({
         success: false,
-        message: 'Maximum 20 symptoms allowed'
+        message: 'All symptoms must be either 0 or 1'
       });
     }
 
-    // Validate that all symptoms are numbers
-    if (!symptoms.every(id => typeof id === 'number' && id >= 0 && id <= 100)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid symptom IDs provided'
-      });
-    }
+    // Get selected symptoms from binary array (1-based indexing)
+    const selectedSymptoms = symptoms
+      .map((value, index) => value === 1 ? {
+        id: index, // Keep 1-based indexing
+        name: symptomsDictionary[index] || `Unknown Symptom (ID: ${index})`
+      } : null)
+      .filter(symptom => symptom !== null);
 
-    // For now, hardcode a sample disease prediction
-    // This will be replaced with your ML model later
-    const modelOutput = Math.floor(Math.random() * 773); // Random disease index for demo
-    const predictedDisease = DISEASE_MAP[modelOutput];
+    // Make request to FastAPI endpoint
+    const response = await axios.post('http://localhost:8000/predict', {
+      symptoms: symptoms
+    });
 
-    if (!predictedDisease) {
-      return res.status(500).json({
-        success: false,
-        message: 'Invalid model output'
-      });
-    }
+    // Get the top diseases from the response
+    const topDiseases = response.data.top_diseases || [];
 
     return res.json({
       success: true,
-      results: [{
-        disease: predictedDisease,
-        confidence: 0.85, // Sample confidence score
-        requiresUrgentAttention: false,
-        matchingSymptoms: symptoms
-      }],
-      submittedSymptoms: symptoms
+      results: topDiseases.map(disease => ({
+        disease: disease.disease,
+        confidence: disease.confidence,
+        requiresUrgentAttention: disease.confidence > 0.8, // You can adjust this threshold
+        selectedSymptoms: selectedSymptoms
+      })),
+      submittedSymptoms: selectedSymptoms
     });
 
   } catch (error) {
