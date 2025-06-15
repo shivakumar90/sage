@@ -5,7 +5,7 @@ pipeline {
         DOCKER_IMAGE_FRONTEND = 'shivakumarreddy1/disease-detection-frontend'
         DOCKER_IMAGE_BACKEND = 'shivakumarreddy1/disease-detection-backend'
         DOCKER_TAG = "${BUILD_NUMBER}"
-        EC2_HOST = '13.201.85.17'
+        EC2_HOST = '13.234.66.181'
         EC2_USER = 'ubuntu'
     }
     
