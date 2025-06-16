@@ -60,7 +60,7 @@ const ResultsDisplay = ({ results }) => {
                   <h3 className={`text-lg font-semibold capitalize ${index === 0 ? 'text-blue-700' : ''}`}>
                     {result.disease}
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 w-48">
                     Confidence: {(result.confidence * 100).toFixed(1)}%
                   </p>
                   {/* Confidence Bar */}

@@ -57,7 +57,7 @@ router.post('/predict', async (req, res) => {
       success: true,
       results: topDiseases.map(disease => ({
         disease: disease.disease,
-        confidence: disease.confidence,
+        confidence: Number(disease.confidence.toFixed(2)),
         requiresUrgentAttention: disease.confidence > 0.8, // You can adjust this threshold
         selectedSymptoms: selectedSymptoms
       })),
