@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const predictionRoutes = require('./routes/prediction');
 const healthRoutes = require('./routes/health');
+const userRoutes = require('./routes/user');
+const connectDB = require('./config/db');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -15,6 +17,7 @@ app.use(express.json());
 // Routes
 app.use('/api', predictionRoutes);
 app.use('/api', healthRoutes);
+app.use('/api', userRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -29,6 +32,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
+connectDB();
 app.listen(port, host, () => {
   console.log(`Server is running on http://${host}:${port}`);
 }).on('error', (err) => {

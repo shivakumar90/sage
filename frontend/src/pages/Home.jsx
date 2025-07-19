@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import SymptomForm from '../components/SymptomForm';
 import ResultsDisplay from '../components/ResultsDisplay';
 import { getDiseasesBySymptoms } from '../services/api';
+import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   const handleAnalyzeSymptoms = async (selectedSymptomIds) => {
     try {
@@ -36,50 +38,42 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900">Disease Detection System</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-200 flex flex-col justify-center items-center p-8">
+      <div className="max-w-2xl w-full text-center">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-blue-800 mb-4">AI Disease Detection</h1>
+        <p className="text-lg md:text-xl text-gray-700 mb-8">Predict diseases from symptoms instantly. Track your history, give feedback, and get insights—all with a beautiful, easy-to-use interface.</p>
+        <div className="flex justify-center gap-4 mb-8">
+          <button
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
+            onClick={() => navigate('/login')}
+          >
+            Login
+          </button>
+          <button
+            className="bg-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-purple-700 transition"
+            onClick={() => navigate('/signup')}
+          >
+            Sign Up
+          </button>
         </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {error && (
-          <div className="mb-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
-            <p className="font-bold">Error</p>
-            <p>{error}</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+            <span className="text-3xl mb-2">🩺</span>
+            <div className="font-bold text-blue-700 mb-1">Instant Prediction</div>
+            <div className="text-gray-500 text-sm">Get disease predictions from your symptoms in seconds.</div>
           </div>
-        )}
-
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+            <span className="text-3xl mb-2">📊</span>
+            <div className="font-bold text-purple-700 mb-1">Track History</div>
+            <div className="text-gray-500 text-sm">View your past predictions and monitor your health journey.</div>
           </div>
-        ) : results ? (
-          <ResultsDisplay results={results} />
-        ) : (
-          <SymptomForm onSubmit={handleAnalyzeSymptoms} />
-        )}
-
-        {results && (
-          <div className="mt-6 flex justify-center">
-            <button
-              onClick={handleReset}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Start New Analysis
-            </button>
+          <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+            <span className="text-3xl mb-2">💬</span>
+            <div className="font-bold text-blue-700 mb-1">Give Feedback</div>
+            <div className="text-gray-500 text-sm">Help us improve by sharing your experience with predictions.</div>
           </div>
-        )}
-      </main>
-
-      <footer className="bg-white shadow mt-8">
-        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-sm text-gray-500">
-            This tool is for informational purposes only and is not a substitute for professional medical advice.
-          </p>
         </div>
-      </footer>
+      </div>
     </div>
   );
 };

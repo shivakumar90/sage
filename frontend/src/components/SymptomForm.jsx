@@ -1,12 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { symptomsDictionary } from '../data/symptomsDictionary.js';
 import { categorizedSymptoms } from '../data/categorizedSymptoms.js';
 
-const SymptomForm = ({ onSubmit }) => {
+const SymptomForm = ({ onSubmit, userId }) => {
   const [selectedSymptoms, setSelectedSymptoms] = useState(new Set());
   const [activeCategory, setActiveCategory] = useState('All');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [previouslySelectedSymptoms, setPreviouslySelectedSymptoms] = useState(new Set());
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPreviousSymptoms = async () => {
+      if (!userId) {
+        setIsLoading(false);
+        return;
+      }
+      try {
+        const response = await fetch(`/api/predict/history?userId=${userId}`);
+        const data = await response.json();
+        if (data.success) {
+          // Collect all previously selected symptoms from history
+          const previousSymptoms = new Set();
+          data.history.forEach(prediction => {
+            prediction.symptoms.forEach((value, index) => {
+              if (value === 1) {
+                previousSymptoms.add(index);
+              }
+            });
+          });
+          setPreviouslySelectedSymptoms(previousSymptoms);
+        }
+      } catch (err) {
+        console.error('Error fetching previous symptoms:', err);
+      }
+      setIsLoading(false);
+    };
+
+    fetchPreviousSymptoms();
+  }, [userId]);
 
   const handleSymptomToggle = (symptomId) => {
     setSelectedSymptoms(prev => {
@@ -26,9 +58,12 @@ const SymptomForm = ({ onSubmit }) => {
     setIsSubmitting(true);
     
     try {
-      // Convert selected symptoms Set to an array of symptom IDs
-      const symptomIds = Array.from(selectedSymptoms);
-      await onSubmit(symptomIds);
+      // Convert selected symptoms Set to a binary array of length 377
+      const binaryArray = Array(377).fill(0);
+      selectedSymptoms.forEach(id => {
+        if (id >= 0 && id < 377) binaryArray[id] = 1;
+      });
+      await onSubmit(binaryArray);
     } catch (err) {
       setError('Failed to submit symptoms. Please try again.');
       console.error('Error submitting symptoms:', err);
@@ -40,8 +75,27 @@ const SymptomForm = ({ onSubmit }) => {
   // Get all categories
   const categories = Object.keys(categorizedSymptoms);
 
+  // Filter out previously selected symptoms from the display
+  const filterSymptoms = (symptoms) => {
+    if (typeof symptoms === 'object' && !Array.isArray(symptoms)) {
+      // For symptomsDictionary (object format)
+      return Object.entries(symptoms).filter(([id]) => !previouslySelectedSymptoms.has(parseInt(id)));
+    } else {
+      // For categorizedSymptoms (array format)
+      return symptoms.filter(({ id }) => !previouslySelectedSymptoms.has(id));
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto p-4 border-4 border-blue-200 bg-white rounded-2xl shadow-lg">
+        <div className="text-center py-4">Loading symptoms...</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-4xl mx-auto p-4">
+    <div className="max-w-4xl mx-auto p-4 border-4 border-blue-200 bg-white rounded-2xl shadow-lg">
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Category Tabs */}
         <div className="flex overflow-x-auto pb-2 mb-4">
@@ -82,8 +136,8 @@ const SymptomForm = ({ onSubmit }) => {
         {/* Symptoms Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-[60vh] overflow-y-auto p-2">
           {activeCategory === 'All' ? (
-            // Show all symptoms when 'All' is selected
-            Object.entries(symptomsDictionary).map(([id, name]) => (
+            // Show all symptoms when 'All' is selected, excluding previously selected ones
+            filterSymptoms(symptomsDictionary).map(([id, name]) => (
               <label key={id} className="flex items-center space-x-2 p-2 border rounded hover:bg-gray-50">
                 <input
                   type="checkbox"
@@ -95,8 +149,8 @@ const SymptomForm = ({ onSubmit }) => {
               </label>
             ))
           ) : (
-            // Show symptoms for selected category
-            categorizedSymptoms[activeCategory].map(({ id, name }) => (
+            // Show symptoms for selected category, excluding previously selected ones
+            filterSymptoms(categorizedSymptoms[activeCategory]).map(({ id, name }) => (
               <label key={id} className="flex items-center space-x-2 p-2 border rounded hover:bg-gray-50">
                 <input
                   type="checkbox"

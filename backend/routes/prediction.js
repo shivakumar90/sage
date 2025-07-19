@@ -3,6 +3,8 @@ const router = express.Router();
 const axios = require('axios');
 const DISEASE_MAP = require('../config/diseases');
 const { symptomsDictionary } = require('../config/symptomsDictionary');
+const Prediction = require('../models/Prediction');
+const Feedback = require('../models/Feedback');
 
 /**
  * @route   POST /api/predict
@@ -11,7 +13,7 @@ const { symptomsDictionary } = require('../config/symptomsDictionary');
  */
 router.post('/predict', async (req, res) => {
   try {
-    const { symptoms } = req.body;
+    const { symptoms, userId } = req.body;
     
     // Input validation
     if (!symptoms || !Array.isArray(symptoms)) {
@@ -46,12 +48,23 @@ router.post('/predict', async (req, res) => {
       .filter(symptom => symptom !== null);
 
     // Make request to FastAPI endpoint
-    const response = await axios.post('http://15.206.189.64:8000/predict', {
+    const response = await axios.post('http://localhost:8000/predict', {
       symptoms: symptoms
     });
 
     // Get the top diseases from the response
     const topDiseases = response.data.top_diseases || [];
+
+    // Save prediction to DB
+    let predictionDoc = null;
+    if (userId) {
+      predictionDoc = new Prediction({
+        userId,
+        symptoms,
+        results: topDiseases,
+      });
+      await predictionDoc.save();
+    }
 
     return res.json({
       success: true,
@@ -61,7 +74,8 @@ router.post('/predict', async (req, res) => {
         requiresUrgentAttention: disease.confidence > 0.8, // You can adjust this threshold
         selectedSymptoms: selectedSymptoms
       })),
-      submittedSymptoms: selectedSymptoms
+      submittedSymptoms: selectedSymptoms,
+      predictionId: predictionDoc ? predictionDoc._id : null
     });
 
   } catch (error) {
@@ -70,6 +84,59 @@ router.post('/predict', async (req, res) => {
       success: false,
       message: error.message || 'Server error during prediction'
     });
+  }
+});
+
+// Get prediction history for a user
+router.get('/history', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) {
+      return res.status(400).json({ success: false, message: 'userId is required' });
+    }
+    // Return all predictions for the user
+    // const history = await Prediction.find({ userId, feedbackGiven: false }).sort({ timestamp: -1 });
+    const history = await Prediction.find({ userId }).sort({ timestamp: -1 });
+    res.json({ success: true, history });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Feedback endpoint
+router.post('/feedback', async (req, res) => {
+  try {
+    const { userId, predictionId, feedback, comment } = req.body;
+    if (!userId || !predictionId || typeof feedback !== 'boolean') {
+      return res.status(400).json({ success: false, message: 'userId, predictionId, and feedback are required' });
+    }
+    // Check if feedback already exists for this user and prediction
+    const existing = await Feedback.findOne({ userId, predictionId });
+    if (existing) {
+      return res.status(400).json({ success: false, message: 'Feedback already submitted for this prediction.' });
+    }
+    const feedbackDoc = new Feedback({ userId, predictionId, feedback, comment });
+    await feedbackDoc.save();
+    // Set feedbackGiven to true for the prediction
+    await Prediction.findByIdAndUpdate(predictionId, { feedbackGiven: true });
+    res.json({ success: true, message: 'Feedback submitted' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// Dashboard summary endpoint
+router.get('/dashboard-summary', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) {
+      return res.status(400).json({ success: false, message: 'userId is required' });
+    }
+    const predictionsCount = await Prediction.countDocuments({ userId });
+    const feedbackCount = await Feedback.countDocuments({ userId });
+    res.json({ success: true, predictions: predictionsCount, feedback: feedbackCount });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
