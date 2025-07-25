@@ -48,11 +48,7 @@ router.post('/predict', async (req, res) => {
       .filter(symptom => symptom !== null);
 
     // Make request to FastAPI endpoint
-<<<<<<< HEAD
-    const response = await axios.post('http://localhost:8000/predict', {
-=======
-    const response = await axios.post('http://65.0.179.239:8000/predict', {
->>>>>>> 296b21d6840d3aa7c041b6f5b7900e234fc62106
+    const response = await axios.post('http://13.203.210.134:8000/predict', {
       symptoms: symptoms
     });
 

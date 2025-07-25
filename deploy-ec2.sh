@@ -1,11 +1,13 @@
 #!/bin/bash
 
-# Usage: ./deploy-ec2.sh <TAG>
+# Usage: ./deploy-ec2.sh <TAG> <MONGODB_PASSWORD>
 TAG=$1
+MONGODB_PASSWORD=$2
+MONGODB_URI="mongodb+srv://chenreddyshivakumar1:${MONGODB_PASSWORD}@cluster0.l99afwo.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
-if [ -z "$TAG" ]; then
-  echo "Error: Docker tag not provided."
-  echo "Usage: ./deploy-ec2.sh <TAG>"
+if [ -z "$TAG" ] || [ -z "$MONGODB_PASSWORD" ]; then
+  echo "Error: Docker tag or MongoDB password not provided."
+  echo "Usage: ./deploy-ec2.sh <TAG> <MONGODB_PASSWORD>"
   exit 1
 fi
 
@@ -32,6 +34,7 @@ services:
       - NODE_ENV=production
       - PORT=5000
       - HOST=0.0.0.0
+      - MONGODB_URI=${MONGODB_URI}
     networks:
       - app-network
 

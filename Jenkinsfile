@@ -5,8 +5,9 @@ pipeline {
         DOCKER_IMAGE_FRONTEND = 'shivakumarreddy1/disease-detection-frontend'
         DOCKER_IMAGE_BACKEND = 'shivakumarreddy1/disease-detection-backend'
         DOCKER_TAG = "${BUILD_NUMBER}"
-        EC2_HOST = '65.0.179.239'
+        EC2_HOST = '13.203.210.134'
         EC2_USER = 'ubuntu'
+        MONGODB_PASSWORD = credentials('sage-mongo-atlas')
     }
     
     stages {
@@ -49,7 +50,7 @@ pipeline {
                 sshagent(['aws-ssh']) {
                     sh """
                         scp -o StrictHostKeyChecking=no deploy-ec2.sh ${EC2_USER}@${EC2_HOST}:/home/ubuntu/
-                        ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} "bash /home/ubuntu/deploy-ec2.sh ${DOCKER_TAG}"
+                        ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} "bash /home/ubuntu/deploy-ec2.sh ${DOCKER_TAG} ${MONGODB_PASSWORD}"
                     """
                 }
             }
