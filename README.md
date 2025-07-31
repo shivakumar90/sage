@@ -101,6 +101,21 @@ disease-detection/
 └── README.md            # Project documentation
 ```
 
+## MongoDB Connection (Important)
+
+The backend expects the full MongoDB connection string to be provided via the `MONGODB_URI` environment variable.
+
+- **Local Development:**
+  - By default, `docker-compose.yml` sets `MONGODB_URI=mongodb://localhost:27017/disease_detection` for the backend service.
+  - You can override this by setting the `MONGODB_URI` environment variable if you want to connect to a remote MongoDB instance.
+
+- **Production Deployment (AWS/CI/CD):**
+  - The MongoDB password is stored securely in Jenkins as a secret text credential (ID: `sage-mongo-atlas`).
+  - During deployment, the Jenkins pipeline passes this password to the `deploy-ec2.sh` script, which constructs the full MongoDB Atlas connection string and injects it as `MONGODB_URI` in the backend service's environment.
+  - The backend will always use the value of `MONGODB_URI` for connecting to the database.
+
+**Do not hardcode sensitive information in your code or commit secrets to version control. Always use environment variables for secrets and connection strings.**
+
 ## API Documentation
 
 ### Health Check

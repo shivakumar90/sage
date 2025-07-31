@@ -55,27 +55,33 @@ const ResultsDisplay = ({ results }) => {
         <div className="space-y-4">
           {diseaseResults.slice(0, 5).map((result, index) => (
             <div key={`disease-${result.disease}-${index}`} className="border-b pb-4 last:border-b-0">
-              <div className="flex justify-between items-start">
-                <div>
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex-1">
                   <h3 className={`text-lg font-semibold capitalize ${index === 0 ? 'text-blue-700' : ''}`}>
                     {result.disease}
                   </h3>
-                  <p className="text-gray-600 w-48">
-                    Confidence: {(result.confidence * 100).toFixed(1)}%
-                  </p>
-                  {/* Confidence Bar */}
-                  <div className="w-full h-2 mt-2 bg-gray-200 rounded">
-                    <div
-                      className={`h-2 rounded ${getConfidenceColor(result.confidence)}`}
-                      style={{ width: `${(result.confidence * 100).toFixed(1)}%` }}
-                    ></div>
-                  </div>
                 </div>
                 {result.requiresUrgentAttention && (
-                  <span className="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded">
+                  <span className="bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded ml-2 flex-shrink-0">
                     Urgent Attention Required
                   </span>
                 )}
+              </div>
+              
+              {/* Confidence Score and Bar */}
+              <div className="mt-2">
+                <div className="flex justify-between items-center mb-1">
+                  <p className="text-gray-600 text-sm">
+                    Confidence: {(result.confidence * 100).toFixed(1)}%
+                  </p>
+                </div>
+                {/* Confidence Bar */}
+                <div className="w-full h-3 bg-gray-200 rounded-full">
+                  <div
+                    className={`h-3 rounded-full transition-all duration-300 ${getConfidenceColor(result.confidence)}`}
+                    style={{ width: `${(result.confidence * 100).toFixed(1)}%` }}
+                  ></div>
+                </div>
               </div>
             </div>
           ))}
