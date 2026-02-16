@@ -5,7 +5,7 @@ pipeline {
         DOCKER_IMAGE_FRONTEND = 'shivakumarreddy1/disease-detection-frontend'
         DOCKER_IMAGE_BACKEND = 'shivakumarreddy1/disease-detection-backend'
         DOCKER_TAG = "${BUILD_NUMBER}"
-        EC2_HOST = '13.203.210.134'
+        EC2_HOST = '13.234.67.53'
         EC2_USER = 'ubuntu'
         MONGODB_PASSWORD = credentials('sage-mongo-atlas')
     }
